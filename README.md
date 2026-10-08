@@ -9,7 +9,6 @@ Stack: Next.js 15 (App Router) · TypeScript · Tailwind CSS 4 · Framer Motion 
 ## Run locally
 
 ```bash
-cd ai-radar
 cp .env.example .env          # fill in DATABASE_URL at least
 npm install
 npx prisma migrate deploy
@@ -75,11 +74,11 @@ Rate limits: 60 swipes/min per user (in memory — fine for one instance), 5 cod
 
 ## Deploy on Railway
 
-1. New project → **Deploy from GitHub repo**, set the service **Root Directory** to `ai-radar`.
+1. New project → **Deploy from GitHub repo** → this repository.
 2. Add the **PostgreSQL** plugin and reference its `DATABASE_URL` in the service variables; add the other variables above.
 3. Build `npm run build`, start `npm run start` (runs `prisma migrate deploy`, then `next start` on `$PORT`) —
    both are in `railway.json`.
-4. Daily check: a second service from the same repo (root `ai-radar`, same variables), **Cron Schedule** `0 0 * * *`,
+4. Daily check: a second service from the same repo (same variables), **Cron Schedule** `0 0 * * *`,
    start command `npm run cron:verify`.
 5. Catalog: once, from the Railway shell of the web service — `npm run seed:parse` — then publish in `/admin`.
 
