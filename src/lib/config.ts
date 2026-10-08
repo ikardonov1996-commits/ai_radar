@@ -20,9 +20,14 @@ export function getConfig() {
 
 export type AppConfig = ReturnType<typeof getConfig>;
 
-/** Values the client needs. Same shape for now, kept separate on purpose. */
+/** Login codes are emailed only when Resend is configured; without it sign-in takes the email alone. */
+export function emailCodesEnabled() {
+  return Boolean(process.env.RESEND_API_KEY);
+}
+
+/** Values the client needs. */
 export function getPublicConfig() {
-  return getConfig();
+  return { ...getConfig(), emailCodes: emailCodesEnabled() };
 }
 export type PublicConfig = ReturnType<typeof getPublicConfig>;
 

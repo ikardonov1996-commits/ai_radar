@@ -102,14 +102,19 @@ export function SignupFlow() {
           className="flex flex-1 flex-col gap-4"
           onSubmit={(e) => {
             e.preventDefault();
-            requestCode();
+            if (config.emailCodes) requestCode();
+            else verify("");
           }}
         >
           <StepLabel n={1} />
           <h1 className="font-display text-[30px] font-bold leading-[34px]">
             Регистрация и +{config.welcomeBonus} {tokensWord(config.welcomeBonus)}
           </h1>
-          <p className="text-muted">Пришлём на почту 6-значный код. Пароль не нужен. Если аккаунт уже есть — просто войдёшь.</p>
+          <p className="text-muted">
+            {config.emailCodes
+              ? "Пришлём на почту 6-значный код. Пароль не нужен. Если аккаунт уже есть — просто войдёшь."
+              : "Укажи почту — пароль не нужен. Если аккаунт уже есть — просто войдёшь."}
+          </p>
           <label className="flex flex-col gap-2">
             <span className="text-xs font-medium text-muted">Email</span>
             <input
@@ -125,7 +130,7 @@ export function SignupFlow() {
           </label>
           {error && <ErrorText>{error}</ErrorText>}
           <Button type="submit" disabled={busy || !email} className="mt-auto">
-            {busy ? "Отправляем…" : "Получить код"}
+            {busy ? (config.emailCodes ? "Отправляем…" : "Входим…") : config.emailCodes ? "Получить код" : "Продолжить"}
           </Button>
         </form>
       )}

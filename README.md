@@ -16,7 +16,8 @@ npm run seed:demo             # 36 placeholder cards, published — to try the f
 npm run dev                   # http://localhost:3000
 ```
 
-Without `RESEND_API_KEY` the login code is printed to the server log instead of being emailed.
+Without `RESEND_API_KEY` sign-in takes the email alone, with no code (for the MVP, until email is set up). Set the key and
+the 6-digit code by email turns on by itself.
 
 Remove the demo cards before launch: `npm run seed:demo -- --clear`.
 
@@ -26,7 +27,7 @@ Remove the demo cards before launch: `npm run seed:demo -- --clear`.
 |---|---|
 | `DATABASE_URL` | PostgreSQL connection string |
 | `JWT_SECRET` | Signs session cookies; also salts code and IP hashes. Long random string |
-| `RESEND_API_KEY`, `EMAIL_FROM` | Login code emails. `EMAIL_FROM` must be on a domain verified in Resend |
+| `RESEND_API_KEY`, `EMAIL_FROM` | Login code emails. `EMAIL_FROM` must be on a domain verified in Resend. Without the key, no code is asked |
 | `ADMIN_TOKEN` | Password for `/admin` |
 | `CRON_SECRET` | Bearer token for `POST /api/cron/verify` |
 | `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL` | Optional. Seed parser writes Russian one-liners and topics with Claude (default model `claude-opus-5-5`) |

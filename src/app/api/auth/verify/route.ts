@@ -1,30 +1,19 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { bad, readJson } from "@/lib/http";
-import { CODE_MAX_ATTEMPTS, getConfig } from "@/lib/config";
+import { CODE_MAX_ATTEMPTS, emailCodesEnabled, getConfig } from "@/lib/config";
 import { createSession, getAnonId, getIpHash } from "@/lib/session";
 import { logEvent } from "@/lib/events";
-import { hashCode } from "@/lib/auth";
+import { EMAIL_RE, hashCode } from "@/lib/auth";
 
 export async function POST(req: Request) {
   const body = await readJson<{ email?: string; code?: string }>(req);
   const email = (body?.email ?? "").trim().toLowerCase();
   const code = (body?.code ?? "").replace(/\D/g, "");
-  if (!email || code.length !== 6) return bad("Введи 6 цифр из письма");
-
-  const rec = await prisma.emailCode.findFirst({
-    where: { email, consumedAt: null },
-    orderBy: { createdAt: "desc" },
-  });
-  if (!rec || rec.expiresAt < new Date()) return bad("Код истёк. Запроси новый", 410);
-  if (rec.attempts >= CODE_MAX_ATTEMPTS) return bad("Слишком много попыток. Запроси новый код", 429);
-
-  if (rec.codeHash !== hashCode(email, code)) {
-    const updated = await prisma.emailCode.update({ where: { id: rec.id }, data: { attempts: { increment: 1 } } });
-    const left = CODE_MAX_ATTEMPTS - updated.attempts;
-    return bad(left > 0 ? `Неверный код. Осталось попыток: ${left}` : "Слишком много попыток. Запроси новый код", 401);
-  }
-  await prisma.emailCode.update({ where: { id: rec.id }, data: { consumedAt: new Date() } });
+  if (emailCodesEnabled()) {
+    const err = await checkCode(email, code);
+    if (err) return err;
+  } else if (!EMAIL_RE.test(email) || email.length > 200) return bad("Проверь адрес почты");
 
   const anonId = await getAnonId();
   let user = await prisma.user.findUnique({ where: { email } });
@@ -54,4 +43,23 @@ export async function POST(req: Request) {
   await createSession(user.id);
   if (isNew) await logEvent({ userId: user.id, anonId }, "signup_complete", {});
   return NextResponse.json({ isNew, needsInterests: user.interests.length < 3 });
+}
+
+/** Validates and consumes the emailed code. Returns an error response, or null when the code is right. */
+async function checkCode(email: string, code: string) {
+  if (!email || code.length !== 6) return bad("Введи 6 цифр из письма");
+  const rec = await prisma.emailCode.findFirst({
+    where: { email, consumedAt: null },
+    orderBy: { createdAt: "desc" },
+  });
+  if (!rec || rec.expiresAt < new Date()) return bad("Код истёк. Запроси новый", 410);
+  if (rec.attempts >= CODE_MAX_ATTEMPTS) return bad("Слишком много попыток. Запроси новый код", 429);
+
+  if (rec.codeHash !== hashCode(email, code)) {
+    const updated = await prisma.emailCode.update({ where: { id: rec.id }, data: { attempts: { increment: 1 } } });
+    const left = CODE_MAX_ATTEMPTS - updated.attempts;
+    return bad(left > 0 ? `Неверный код. Осталось попыток: ${left}` : "Слишком много попыток. Запроси новый код", 401);
+  }
+  await prisma.emailCode.update({ where: { id: rec.id }, data: { consumedAt: new Date() } });
+  return null;
 }
