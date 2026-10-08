@@ -53,7 +53,10 @@ npm run seed:parse -- --regen         # regenerate oneLiner/topics with Claude
 - One app on iOS and Android becomes one card with two links (matched by name + developer).
 - Idempotent: key is `source + sourceId`. A re-run updates scraped fields; cards edited in the admin keep their
   edited name, one-liner, topics, images and links.
-- New cards are **unpublished**. Review and publish them at `/admin`. The script prints cards per topic and platform
+- `seed/catalog.json` is the reviewed catalog (70 cards, Russian one-liners). `npm run start` runs
+  `npm run seed:import` before the server: it creates the cards from that file that are missing in the database, published,
+  and never touches existing ones. To refresh it: run the parser on a local database, review, export, commit.
+- New cards from the parser are **unpublished**. Review and publish them at `/admin`. The script prints cards per topic and platform
   and flags topics with fewer than 5.
 
 ## Tokens and anti-fraud

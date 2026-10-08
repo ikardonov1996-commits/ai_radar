@@ -5,12 +5,13 @@
   "scripts": {
     "dev": "next dev",
     "build": "prisma generate && next build",
-    "start": "prisma migrate deploy && next start -p ${PORT:-3000}",
+    "start": "prisma migrate deploy && tsx scripts/seed-import.ts && next start -p ${PORT:-3000}",
     "typecheck": "tsc --noEmit",
     "postinstall": "prisma generate",
     "seed:parse": "tsx scripts/seed-parse.ts",
     "seed:demo": "tsx scripts/seed-demo.ts",
-    "cron:verify": "tsx scripts/verify-tokens.ts"
+    "cron:verify": "tsx scripts/verify-tokens.ts",
+    "seed:import": "tsx scripts/seed-import.ts"
   },
   "engines": {
     "node": ">=20"
