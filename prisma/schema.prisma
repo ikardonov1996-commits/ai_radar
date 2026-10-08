@@ -1,0 +1,199 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Platform {
+  ios
+  android
+  web
+}
+
+enum Price {
+  free
+  freemium
+  paid
+}
+
+enum Direction {
+  right
+  left
+}
+
+enum SetStatus {
+  want
+  using
+}
+
+enum WillTry {
+  yes
+  maybe
+  no
+}
+
+enum TxKind {
+  welcome
+  survey
+}
+
+enum TxStatus {
+  pending
+  confirmed
+  rejected
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  interests String[]
+  anonId    String?
+  ipHash    String?
+  createdAt DateTime @default(now())
+
+  swipes   Swipe[]
+  setItems SetItem[]
+  surveys  Survey[]
+  txs      TokenTx[]
+  events   Event[]
+
+  @@index([anonId])
+  @@index([ipHash])
+}
+
+model App {
+  id           String     @id @default(cuid())
+  slug         String     @unique
+  name         String
+  developer    String?
+  oneLiner     String
+  description  String     @default("")
+  iconUrl      String?
+  imageUrl     String?
+  screenshots  String[]
+  platforms    Platform[]
+  price        Price      @default(free)
+  rating       Float?
+  installs     String?
+  /// { ios?: string, android?: string, web?: string }
+  storeUrls    Json       @default("{}")
+  topics       String[]
+  source       String
+  sourceId     String
+  /// Other "source:sourceId" keys merged into this card (iOS + Android of one app)
+  altSourceIds String[]
+  /// Set when an admin edits the card; the parser then keeps the edited fields
+  manualEdit   Boolean    @default(false)
+  published    Boolean    @default(false)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  swipes   Swipe[]
+  setItems SetItem[]
+  surveys  Survey[]
+
+  @@unique([source, sourceId])
+  @@index([published])
+}
+
+model Swipe {
+  id            String    @id @default(cuid())
+  userId        String?
+  anonId        String
+  appId         String
+  direction     Direction
+  dwellMs       Int       @default(0)
+  undone        Boolean   @default(false)
+  /// This right swipe was the N-th like and got a survey offered
+  surveyOffered Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+  app  App   @relation(fields: [appId], references: [id], onDelete: Cascade)
+
+  @@index([userId, undone])
+  @@index([anonId, undone])
+  @@index([createdAt])
+}
+
+model SetItem {
+  id        String    @id @default(cuid())
+  userId    String?
+  anonId    String?
+  appId     String
+  status    SetStatus @default(want)
+  createdAt DateTime  @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+  app  App   @relation(fields: [appId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, appId])
+  @@unique([anonId, appId])
+}
+
+model Survey {
+  id         String   @id @default(cuid())
+  userId     String
+  appId      String
+  usefulness Int
+  willTry    WillTry
+  reasons    String[]
+  comment    String?
+  durationMs Int
+  status     TxStatus @default(pending)
+  createdAt  DateTime @default(now())
+
+  user User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  app  App      @relation(fields: [appId], references: [id], onDelete: Cascade)
+  tx   TokenTx?
+
+  @@unique([userId, appId])
+  @@index([createdAt])
+}
+
+model TokenTx {
+  id        String    @id @default(cuid())
+  userId    String
+  amount    Int
+  kind      TxKind
+  status    TxStatus  @default(pending)
+  reason    String?
+  surveyId  String?   @unique
+  createdAt DateTime  @default(now())
+  decidedAt DateTime?
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  survey Survey? @relation(fields: [surveyId], references: [id], onDelete: SetNull)
+
+  @@index([userId, status])
+  @@index([status, createdAt])
+}
+
+model Event {
+  id        String   @id @default(cuid())
+  userId    String?
+  anonId    String
+  type      String
+  payload   Json     @default("{}")
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([type, createdAt])
+  @@index([anonId])
+}
+
+model EmailCode {
+  id         String    @id @default(cuid())
+  email      String
+  codeHash   String
+  attempts   Int       @default(0)
+  expiresAt  DateTime
+  consumedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([email, createdAt])
+}

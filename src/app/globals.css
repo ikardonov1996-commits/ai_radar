@@ -1,0 +1,92 @@
+@import "tailwindcss";
+
+/* AI Radar — Bold Design System v1.0 */
+@theme {
+  --color-lime: #dfff00;
+  --color-lime-soft: #edff81;
+  --color-bg: #09090a;
+  --color-bg-deep: #050506;
+  --color-surface-1: #161618;
+  --color-surface-2: #202023;
+  --color-surface-3: #2b2b30;
+  --color-line: #37373a;
+  --color-outline: #535357;
+  --color-white: #f7f7f5;
+  --color-muted: #b4b4b8;
+  --color-subtle: #909095;
+  --color-on-lime: #09090a;
+  --color-success: #4bd89c;
+  --color-warning: #ffb648;
+  --color-error: #f76b74;
+
+  --font-display: var(--font-space-grotesk), "Inter", sans-serif;
+  --font-sans: var(--font-inter), sans-serif;
+
+  --radius-xl: 24px;
+  --radius-lg: 20px;
+  --radius-md: 14px;
+
+  --shadow-card: 0 12px 32px rgba(5, 5, 6, 0.7);
+  --shadow-soft: 0 4px 14px rgba(5, 5, 6, 0.55);
+
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+html,
+body {
+  background: var(--color-bg);
+  color: var(--color-white);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 22px;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+}
+
+@media (min-width: 640px) {
+  html,
+  body {
+    font-size: 16px;
+    line-height: 24px;
+  }
+}
+
+body {
+  min-height: 100dvh;
+}
+
+button {
+  cursor: pointer;
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-white);
+  outline-offset: 2px;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  scrollbar-width: none;
+}
+
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .backdrop-blur {
+    backdrop-filter: none !important;
+    background: var(--color-bg) !important;
+  }
+}
